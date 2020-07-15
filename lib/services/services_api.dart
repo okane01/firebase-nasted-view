@@ -51,6 +51,20 @@ getZilla(AllPlacesNotifier zillaNotify) async {
   zillaNotify.zilla = _zillaList;
 }
 
+// ################## Getting Zilla Data ########################
+
+getPlaces(AllPlacesNotifier zillaNotify) async {
+  QuerySnapshot snapshot =
+      await Firestore.instance.collection('zillaPlaces').getDocuments();
+  List<ZillaPlaces> _zillaList = [];
+
+  snapshot.documents.forEach((documents) {
+    ZillaPlaces zilla = ZillaPlaces.fromMap(documents.data);
+    _zillaList.add(zilla);
+  });
+  zillaNotify.zillaPlaces = _zillaList;
+}
+
 // ################## Getting Zilla Places Data ########################
 
 getZillaPlaces(AllPlacesNotifier zillaPlacesNotify) async {
@@ -139,7 +153,6 @@ uploadZillaImageAndLocation(
 
     String url = await firebaseStorageRef.getDownloadURL();
     print('Downloaded url: $url');
-    // upload Country and all info
     _uploadZilla(zilla, isUpdating, imageUrl: url);
   } else {
     print('skipping image upload');
@@ -170,7 +183,7 @@ _uploadZilla(Zilla zilla, bool isUpdating, {String imageUrl}) async {
 
 // ################## Zilla Places ########################
 
-uploadZillaPlacesImageAndLocation(
+uploadPlacesImageAndLocation(
     ZillaPlaces zillaPlaces, File localFile, bool isUpdating) async {
   if (localFile != null) {
     print('uploading image');

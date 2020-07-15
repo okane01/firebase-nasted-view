@@ -1,23 +1,22 @@
 import 'dart:io';
-import 'package:firedemo1/model/zilla.dart';
+
+import 'package:firedemo1/model/zilla_places.dart';
 import 'package:firedemo1/notifier/places_Notifier.dart';
 import 'package:firedemo1/services/services_api.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:provider/provider.dart';
 
-class ZillaFormScreen extends StatefulWidget {
+class PlacesFormScreen extends StatefulWidget {
   final bool isUpdating;
-  ZillaFormScreen({
-    @required this.isUpdating,
-  });
+  PlacesFormScreen({this.isUpdating});
   @override
-  _ZillaFormScreenState createState() => _ZillaFormScreenState();
+  _PlacesFormScreenState createState() => _PlacesFormScreenState();
 }
 
-class _ZillaFormScreenState extends State<ZillaFormScreen> {
+class _PlacesFormScreenState extends State<PlacesFormScreen> {
   GlobalKey<FormState> _formKey = GlobalKey<FormState>();
-  Zilla _currentZilla;
+  ZillaPlaces _currentPlaces;
   TextEditingController _subLocationController = TextEditingController();
   //Another part
   List _subZillaList = [];
@@ -102,24 +101,24 @@ class _ZillaFormScreenState extends State<ZillaFormScreen> {
     super.initState();
     AllPlacesNotifier zillaNotifier =
         Provider.of<AllPlacesNotifier>(context, listen: false);
-    if (zillaNotifier.currentZilla != null) {
-      _currentZilla = zillaNotifier.currentZilla;
-      _subZillaList.addAll(_currentZilla.categories);
+    if (zillaNotifier.currentZillaPlaces != null) {
+      _currentPlaces = zillaNotifier.currentZillaPlaces;
+      _subZillaList.addAll(_currentPlaces.categories);
       _imageUrl = zillaNotifier.currentZilla.imageUrl;
     } else {
-      _currentZilla = Zilla();
+      _currentPlaces = ZillaPlaces();
     }
   }
 
   Widget _showNameWidget() {
     return TextFormField(
-        initialValue: _currentZilla.name,
+        initialValue: _currentPlaces.name,
         keyboardType: TextInputType.text,
         decoration: InputDecoration(
-          labelText: 'জেলার নাম',
+          labelText: 'স্থানের নাম',
         ),
         onSaved: (String name) {
-          _currentZilla.name = name;
+          _currentPlaces.name = name;
         },
         validator: (String value) {
           if (value.isEmpty) {
@@ -134,37 +133,38 @@ class _ZillaFormScreenState extends State<ZillaFormScreen> {
 
   Widget _showDetailsWidget() {
     return TextFormField(
-        initialValue: _currentZilla.description,
-        keyboardType: TextInputType.text,
+        initialValue: _currentPlaces.description,
+        keyboardType: TextInputType.multiline,
         decoration: InputDecoration(
-          labelText: 'জেলার সংক্ষিপ্ত বর্ণনা',
+          hintText: 'স্থানের বর্ণনা',
+          // labelText: 'স্থানের সংক্ষিপ্ত বর্ণনা',
         ),
         onSaved: (String description) {
-          _currentZilla.description = description;
+          _currentPlaces.description = description;
         },
         validator: (String value) {
           if (value.isEmpty) {
             return 'বর্ণনা নেই';
           }
-          if (value.length < 3 || value.length > 500) {
+          if (value.length < 3) {
             return 'বর্ণনার ফরমেট ঠিক নাই';
           }
           return null;
         });
   }
 
-  // Widget _subLocationField() {
-  //   return SizedBox(
-  //     width: 200,
-  //     child: TextField(
-  //       controller: _subLocationController,
-  //       keyboardType: TextInputType.text,
-  //       decoration: InputDecoration(
-  //         labelText: 'বিভাগের নাম',
-  //       ),
-  //     ),
-  //   );
-  // }
+  Widget _subLocationField() {
+    return SizedBox(
+      width: 200,
+      child: TextField(
+        controller: _subLocationController,
+        keyboardType: TextInputType.text,
+        decoration: InputDecoration(
+          labelText: 'জেলার নাম',
+        ),
+      ),
+    );
+  }
 
   subLocationButton(String name) {
     if (name.isNotEmpty) {
@@ -183,24 +183,25 @@ class _ZillaFormScreenState extends State<ZillaFormScreen> {
     _formKey.currentState.save();
 
     print('Strart Finished');
-    _currentZilla.categories = _subZillaList;
-    uploadZillaImageAndLocation(_currentZilla, _localImage, widget.isUpdating);
+    _currentPlaces.categories = _subZillaList;
+    uploadPlacesImageAndLocation(
+        _currentPlaces, _localImage, widget.isUpdating);
     Navigator.of(context).pop();
   }
 
   Widget _showParentWidget() {
     return TextFormField(
-        initialValue: _currentZilla.divid,
+        initialValue: _currentPlaces.divid,
         keyboardType: TextInputType.text,
         decoration: InputDecoration(
-          labelText: 'বিভাগ',
+          labelText: 'উপজেলার নাম',
         ),
         onSaved: (String divid) {
-          _currentZilla.divid = divid;
+          _currentPlaces.divid = divid;
         },
         validator: (String value) {
           if (value.isEmpty) {
-            return 'বিভাগের নাম দরকার';
+            return 'স্থানের নাম দরকার';
           }
           if (value.length < 3 || value.length > 20) {
             return 'ঠিক নাই।';
@@ -213,7 +214,16 @@ class _ZillaFormScreenState extends State<ZillaFormScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('জেলার তথ্য '),
+        title: Text('স্থানের তথ্য '),
+        actions: <Widget>[
+          IconButton(
+            icon: Icon(
+              Icons.save,
+              color: Colors.white,
+            ),
+            onPressed: null,
+          )
+        ],
       ),
       body: SingleChildScrollView(
         child: Padding(
@@ -236,54 +246,60 @@ class _ZillaFormScreenState extends State<ZillaFormScreen> {
                           height: 0,
                         ),
                   _showNameWidget(),
-                  _showDetailsWidget(),
                   SizedBox(
                     height: 10,
                   ),
                   _showParentWidget(),
-                  // Row(
-                  //   mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  //   children: <Widget>[
-                  //     _subLocationField(),
-                  //     ButtonTheme(
-                  //       child: RaisedButton(
-                  //         onPressed: () =>
-                  //             subLocationButton(_subLocationController.text),
-                  //         child: Text(
-                  //           'সংরক্ষন করুন',
-                  //           style: TextStyle(
-                  //             color: Colors.white,
-                  //           ),
-                  //         ),
-                  //       ),
-                  //     )
-                  //   ],
-                  // ),
-                  // SizedBox(
-                  //   height: 10,
-                  // ),
-                  // GridView.count(
-                  //   shrinkWrap: true,
-                  //   crossAxisCount: 3,
-                  //   crossAxisSpacing: 10,
-                  //   mainAxisSpacing: 10,
-                  //   children: _subZillaList
-                  //       .map(
-                  //         (subLocations) => Card(
-                  //           color: Colors.black54,
-                  //           child: Center(
-                  //             child: Text(
-                  //               subLocations,
-                  //               style: TextStyle(
-                  //                 color: Colors.white,
-                  //                 fontSize: 16,
-                  //               ),
-                  //             ),
-                  //           ),
-                  //         ),
-                  //       )
-                  //       .toList(),
-                  // ),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: <Widget>[
+                      _subLocationField(),
+                      ButtonTheme(
+                        child: RaisedButton(
+                          onPressed: () =>
+                              subLocationButton(_subLocationController.text),
+                          child: Text(
+                            'সংরক্ষন করুন',
+                            style: TextStyle(
+                              color: Colors.white,
+                            ),
+                          ),
+                        ),
+                      )
+                    ],
+                  ),
+                  SizedBox(
+                    height: 10,
+                  ),
+                  GridView.count(
+                    shrinkWrap: true,
+                    crossAxisCount: 3,
+                    crossAxisSpacing: 10,
+                    mainAxisSpacing: 10,
+                    children: _subZillaList
+                        .map(
+                          (subLocations) => Card(
+                            color: Colors.black54,
+                            child: Center(
+                              child: Text(
+                                subLocations,
+                                style: TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 16,
+                                ),
+                              ),
+                            ),
+                          ),
+                        )
+                        .toList(),
+                  ),
+                  SizedBox(
+                    height: 6,
+                  ),
+                  _showDetailsWidget(),
+                  SizedBox(
+                    height: 20,
+                  ),
                 ],
               ),
             ),

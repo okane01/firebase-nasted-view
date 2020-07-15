@@ -39,7 +39,7 @@ class _ZillaPageState extends State<ZillaPage> {
     AllPlacesNotifier currentPageTitle =
         Provider.of<AllPlacesNotifier>(context);
     final zillaData = currentPageTitle.zilla.where((prod) {
-      return prod.categories.contains(widget.divid);
+      return prod.divid.contains(widget.divid);
     }).toList();
     return Scaffold(
       appBar: AppBar(
@@ -61,7 +61,7 @@ class _ZillaPageState extends State<ZillaPage> {
                           Navigator.of(context).push(
                             MaterialPageRoute(
                               builder: (ctx) =>
-                                  ZillaDetailsPages(zillaData[i].divid),
+                                  ZillaDetailsPages(zillaData[i].name),
                             ),
                           );
                         },

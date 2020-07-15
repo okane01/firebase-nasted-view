@@ -9,6 +9,8 @@ class ZillaPlaces {
   String description;
   Timestamp createdAt;
   Timestamp updatedAt;
+  ZillaPlaces({this.id, this.name, this.imageUrl, this.divid, this.categories,
+      this.description, this.createdAt, this.updatedAt});
   ZillaPlaces.fromMap(Map<String, dynamic> zilla) {
     id = zilla['id'];
     name = zilla['name'];

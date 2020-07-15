@@ -1,12 +1,12 @@
+import 'package:firedemo1/screeen/places_form_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../services/services_api.dart';
-import '../screeen/zilla_form_screen.dart';
 import '../notifier/places_Notifier.dart';
 
 class ZillaDetailsPages extends StatefulWidget {
-  final String divid;
-  ZillaDetailsPages(this.divid);
+  final String zillaName;
+  ZillaDetailsPages(this.zillaName);
   @override
   _ZillaDetailsPagesState createState() => _ZillaDetailsPagesState();
 }
@@ -29,7 +29,7 @@ class _ZillaDetailsPagesState extends State<ZillaDetailsPages> {
     setState(() {
       AllPlacesNotifier detailsPageNotifier =
           Provider.of<AllPlacesNotifier>(context, listen: false);
-      getZilla(detailsPageNotifier);
+      getPlaces(detailsPageNotifier);
     });
   }
 
@@ -38,7 +38,7 @@ class _ZillaDetailsPagesState extends State<ZillaDetailsPages> {
     AllPlacesNotifier detailsPageNotifier =
         Provider.of<AllPlacesNotifier>(context);
     final placesData = detailsPageNotifier.zillaPlaces.where((prod) {
-      return prod.categories.contains(widget.divid);
+      return prod.categories.contains(widget.zillaName);
     }).toList();
     return Scaffold(
       appBar: AppBar(
@@ -71,7 +71,7 @@ class _ZillaDetailsPagesState extends State<ZillaDetailsPages> {
           // feedNotifier.currentCountry = null;
           Navigator.of(context).push(
             MaterialPageRoute(
-              builder: (ctx) => ZillaFormScreen(
+              builder: (ctx) => PlacesFormScreen(
                 isUpdating: false,
               ),
             ),
